@@ -8,7 +8,7 @@ import (
 	"net"
 	"time"
 
-	echo "github.com/yihan1998/serverless-bench/grpc-echo/proto"
+	echo "github.com/yihan1998/serverless-bench/grpc-echo/echo"
 	"google.golang.org/grpc"
 )
 
