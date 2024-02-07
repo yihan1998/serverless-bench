@@ -15,6 +15,7 @@ import (
 var port = 8080
 
 type echoServer struct {
+	echo.UnimplementedEchoServiceServer
 }
 
 func (e *echoServer) Echo(ctx context.Context, req *echo.Request) (*echo.Response, error) {
@@ -38,7 +39,7 @@ func (e *echoServer) EchoStream(stream echo.EchoService_EchoStreamServer) error 
 
 		fmt.Printf("Replying to ping %s at %s\n", req.Msg, time.Now())
 
-		err = stream.Send(&ping.Response{
+		err = stream.Send(&echo.Response{
 			Msg: fmt.Sprintf("pong %s", time.Now()),
 		})
 
