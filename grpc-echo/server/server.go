@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"net"
 
-	ping "github.com/yihan1998/serverless-bench/grpc-echo-go/proto"
-	"golang.org/x/net/context"
+	echo "github.com/yihan1998/serverless-bench/grpc-echo/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 var port = 8080
 
-type pingServer struct {
+type echoServer struct {
 }
 
 func main () {
