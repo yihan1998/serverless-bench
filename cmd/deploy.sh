@@ -1,1 +1,1 @@
-kn service apply grpc-echo -f ../../grpc-echo/grpc-echo.yaml --concurrency-target 1
+kn service apply grpc-echo -f ../grpc-echo/grpc-echo.yaml --concurrency-target 1
