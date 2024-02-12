@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	serverAddr         = flag.String("server_addr", "http://grpc-echo.default.192.168.1.240.sslip.io:8080", "The server address in the format of host:port")
+	serverAddr         = flag.String("server_addr", "http://grpc-echo.default.192.168.1.240.sslip.io", "The server address in the format of host:port")
 	serverHostOverride = flag.String("server_host_override", "", "")
 	insecure           = flag.Bool("insecure", false, "Set to true to skip SSL validation")
 	skipVerify         = flag.Bool("skip_verify", false, "Set to true to skip server hostname verification in SSL validation")
@@ -28,7 +28,10 @@ func main() {
 		grpc.WithInsecure(),
 	}
 
-	conn, err := grpc.Dial(*serverAddr, opts...)
+	dialContext, cancelDialing := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
+	defer cancelDialing()
+
+	conn, err := grpc.DialContext(dialContext, *serverAddr, opts...)
 	if err != nil {
 		log.Fatalf("fail to dial: %v", err)
 	}
