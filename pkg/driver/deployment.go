@@ -1,15 +1,22 @@
 package driver
 
-// var (
-// 	urlRegex = regexp.MustCompile("at URL:\nhttp://([^\n]+)")
-// )
+import (
+	"regexp"
 
-// type Driver struct {
-// }
+	log "github.com/sirupsen/logrus"
+)
 
-// func NewDriver() *Driver {
-// 	return &Driver{}
-// }
+var (
+	urlRegex = regexp.MustCompile("at URL:\nhttp://([^\n]+)")
+)
+
+type Driver struct {
+}
+
+func NewDriver() {
+	// return &Driver{}
+	log.Infof("Test")
+}
 
 // func deployKnative() bool {
 // 	cmd := exec.Command(
