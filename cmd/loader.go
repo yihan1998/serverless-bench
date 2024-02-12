@@ -14,7 +14,7 @@ var (
 func deployKnative() bool {
 	cmd := exec.Command(
 		"bash",
-		"./pkg/driver/deploy.sh",
+		"./cmd/deploy.sh",
 	)
 
 	stdoutStderr, err := cmd.CombinedOutput()
