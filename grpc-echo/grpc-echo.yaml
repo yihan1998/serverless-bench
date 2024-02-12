@@ -1,13 +1,13 @@
 apiVersion: serving.knative.dev/v1
-  kind: Service
-  metadata:
-    name: grpc-echo
-    namespace: default
-  spec:
-    template:
-      spec:
-        containers:
-          - image: docker.io/yihan2444/grpc-echo-go
-            env:
-              - name: TARGET
-                value: "Go ECHO bench"
+kind: Service
+metadata:
+  name: grpc-echo
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - image: docker.io/yihan2444/grpc-echo-go
+          env:
+            - name: TARGET
+              value: "Go ECHO bench"
