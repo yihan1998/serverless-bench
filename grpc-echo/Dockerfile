@@ -24,8 +24,6 @@ ARG TARGETARCH
 WORKDIR /go/src/github.com/yihan1998/serverless-bench/grpc-echo
 COPY . ./
 
-RUN make clean
-RUN make
 RUN go mod init grpc-echo-go
 RUN go mod tidy
 
