@@ -1,49 +1,42 @@
 package driver
 
-import (
-	"os/exec"
-	"regexp"
+// var (
+// 	urlRegex = regexp.MustCompile("at URL:\nhttp://([^\n]+)")
+// )
 
-	log "github.com/sirupsen/logrus"
-)
+// type Driver struct {
+// }
 
-var (
-	urlRegex = regexp.MustCompile("at URL:\nhttp://([^\n]+)")
-)
+// func NewDriver() *Driver {
+// 	return &Driver{}
+// }
 
-type Driver struct {
-}
+// func deployKnative() bool {
+// 	cmd := exec.Command(
+// 		"bash",
+// 		"./pkg/driver/deploy.sh",
+// 	)
 
-func NewDriver() *Driver {
-	return &Driver{}
-}
+// 	stdoutStderr, err := cmd.CombinedOutput()
+// 	log.Debug("CMD response: ", string(stdoutStderr))
 
-func deployKnative() bool {
-	cmd := exec.Command(
-		"bash",
-		"./pkg/driver/deploy.sh",
-	)
+// 	if err != nil {
+// 		// TODO: there should be a toggle to turn off deployment because if this is fatal then we cannot test the thing locally
+// 		log.Warnf("Failed to deploy function: %v\n%s\n", err, stdoutStderr)
 
-	stdoutStderr, err := cmd.CombinedOutput()
-	log.Debug("CMD response: ", string(stdoutStderr))
+// 		return false
+// 	}
 
-	if err != nil {
-		// TODO: there should be a toggle to turn off deployment because if this is fatal then we cannot test the thing locally
-		log.Warnf("Failed to deploy function: %v\n%s\n", err, stdoutStderr)
+// 	// if endpoint := urlRegex.FindStringSubmatch(string(stdoutStderr))[1]; endpoint != function.Endpoint {
+// 	// 	// TODO: check when this situation happens
+// 	// 	log.Debugf("Update function endpoint to %s\n", endpoint)
+// 	// 	function.Endpoint = endpoint
+// 	// } else {
+// 	// 	function.Endpoint = fmt.Sprintf("%s.%s.%s", function.Name, namespace, bareMetalLbGateway)
+// 	// 	log.Infof("Endpoint: \t%s\n", function.Endpoint)
+// 	// }
 
-		return false
-	}
-
-	// if endpoint := urlRegex.FindStringSubmatch(string(stdoutStderr))[1]; endpoint != function.Endpoint {
-	// 	// TODO: check when this situation happens
-	// 	log.Debugf("Update function endpoint to %s\n", endpoint)
-	// 	function.Endpoint = endpoint
-	// } else {
-	// 	function.Endpoint = fmt.Sprintf("%s.%s.%s", function.Name, namespace, bareMetalLbGateway)
-	// 	log.Infof("Endpoint: \t%s\n", function.Endpoint)
-	// }
-
-	endpoint := urlRegex.FindStringSubmatch(string(stdoutStderr))[1]
-	log.Infof("Endpoint: \t%s\n", endpoint)
-	return true
-}
+// 	endpoint := urlRegex.FindStringSubmatch(string(stdoutStderr))[1]
+// 	log.Infof("Endpoint: \t%s\n", endpoint)
+// 	return true
+// }
