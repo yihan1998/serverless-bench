@@ -1,0 +1,13 @@
+apiVersion: serving.knative.dev/v1
+  kind: Service
+  metadata:
+    name: grpc-echo
+    namespace: default
+  spec:
+    template:
+      spec:
+        containers:
+          - image: docker.io/yihan/grpc-echo-go
+            env:
+              - name: TARGET
+                value: "Python Sample v1"
