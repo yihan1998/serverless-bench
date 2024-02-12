@@ -31,8 +31,8 @@ RUN go mod tidy
 
 # Build the command inside the container.
 # To facilitate gRPC testing, this container includes a client command.
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags=grpcping -o ./ping-server ./server
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags=grpcping -o ./ping-client ./client
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags=grpcping -o ./echo-server ./server
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags=grpcping -o ./echo-client ./client
 
 # Use a Docker multi-stage build to create a lean production image.
 # https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
@@ -40,8 +40,8 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags=grpcping 
 FROM gcr.io/distroless/static
 
 # Copy the binaries to the production image from the builder stage.
-COPY --from=builder /go/src/github.com/yihan1998/serverless-bench/grpc-echo/ping-server /server
-COPY --from=builder /go/src/github.com/yihan1998/serverless-bench/grpc-echo/ping-client /client
+COPY --from=builder /go/src/github.com/yihan1998/serverless-bench/grpc-echo/echo-server /server
+COPY --from=builder /go/src/github.com/yihan1998/serverless-bench/grpc-echo/echo-client /client
 
 # Run the service on container startup.
 CMD ["/server"]
