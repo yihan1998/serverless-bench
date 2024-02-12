@@ -11,3 +11,6 @@ spec:
           env:
             - name: TARGET
               value: "Go ECHO bench"
+          ports:
+            - name: h2c
+              containerPort: 8080
