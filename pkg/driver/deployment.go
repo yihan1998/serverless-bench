@@ -18,7 +18,7 @@ func NewDriver() *Driver {
 	return &Driver{}
 }
 
-func deployKnative() {
+func deployKnative() bool {
 	cmd := exec.Command(
 		"bash",
 		"./pkg/driver/deploy.sh",
@@ -31,7 +31,7 @@ func deployKnative() {
 		// TODO: there should be a toggle to turn off deployment because if this is fatal then we cannot test the thing locally
 		log.Warnf("Failed to deploy function: %v\n%s\n", err, stdoutStderr)
 
-		return
+		return false
 	}
 
 	// if endpoint := urlRegex.FindStringSubmatch(string(stdoutStderr))[1]; endpoint != function.Endpoint {
@@ -45,4 +45,5 @@ func deployKnative() {
 
 	endpoint := urlRegex.FindStringSubmatch(string(stdoutStderr))[1]
 	log.Infof("Endpoint: \t%s\n", endpoint)
+	return true
 }
