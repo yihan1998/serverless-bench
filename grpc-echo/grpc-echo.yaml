@@ -7,7 +7,7 @@ apiVersion: serving.knative.dev/v1
     template:
       spec:
         containers:
-          - image: docker.io/yihan/grpc-echo-go
+          - image: docker.io/yihan2444/grpc-echo-go
             env:
               - name: TARGET
-                value: "Python Sample v1"
+                value: "Go ECHO bench"
