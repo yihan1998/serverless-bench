@@ -1,4 +1,4 @@
-package main
+package driver
 
 import (
 	"os/exec"
@@ -11,7 +11,7 @@ var (
 	urlRegex = regexp.MustCompile("at URL:\nhttp://([^\n]+)")
 )
 
-func main() {
+func deployKnative() {
 	cmd := exec.Command(
 		"bash",
 		"./pkg/driver/deploy.sh",
