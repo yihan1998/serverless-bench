@@ -11,6 +11,13 @@ var (
 	urlRegex = regexp.MustCompile("at URL:\nhttp://([^\n]+)")
 )
 
+type Driver struct {
+}
+
+func NewDriver() *Driver {
+	return &Driver{}
+}
+
 func deployKnative() {
 	cmd := exec.Command(
 		"bash",
