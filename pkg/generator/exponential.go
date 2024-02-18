@@ -9,6 +9,6 @@ func exponentialGenerator(rate float64) distuv.Exponential {
 	}
 }
 
-func getNext(e distuv.Exponential) {
-	return e.Rand()
+func getNext(e distuv.Exponential) int64 {
+	return int64(e.Rand())
 }
