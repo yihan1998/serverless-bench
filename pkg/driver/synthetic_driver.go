@@ -84,6 +84,7 @@ func (d *Driver) individualFunctionDriver(function *common.Function, announceFun
 	waitForInvocations := sync.WaitGroup{}
 
 	totalTraceDuration := d.Configuration.TraceDuration
+	log.Debugf("Starting to invoke individual function driver for %s\n", function.Name)
 
 	startTime := time.Now()
 
