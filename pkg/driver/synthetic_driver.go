@@ -47,7 +47,7 @@ func (c *DriverConfiguration) WithWarmup() bool {
 	}
 }
 
-func (d *Driver) invokeFunction(start Time, duration int) {
+func (d *Driver) invokeFunction(startTime time.Time, duration int) {
 	var lastInvokeTime = time.Now()
 
 	for {
@@ -76,13 +76,12 @@ func (d *Driver) individualFunctionDriver(function *common.Function, announceFun
 		go func(i int) {
 			defer workers.Done()
 			log.Debug("WORKER %d| Invoking function...\n", i)
-			invokeFunction(startTime)
+			d.invokeFunction(startTime, totalTraceDuration)
 		}(i)
 	}
 
 	go func() {
 		workers.Wait()
-		close(ch)
 	}()
 
 	log.Debugf("All the invocations for function %s have been completed.\n", function.Name)
