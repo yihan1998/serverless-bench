@@ -5,6 +5,9 @@
     "YAMLSelector": "container",
     "EndpointPort": 80,
   
+    "Rate": 1.0,
+    "Workers": 1,
+  
     "TracePath": "data/traces/example",
     "Granularity": "minute",
     "OutputPathPrefix": "data/out/experiment",
