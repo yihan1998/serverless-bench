@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+
 	"golang.org/x/exp/slices"
 
 	"github.com/vhive-serverless/loader/pkg/common"
 	"github.com/vhive-serverless/loader/pkg/config"
-	"github.com/vhive-serverless/loader/pkg/trace"
 
 	"github.com/yihan1998/serverless-bench/pkg/driver"
 
@@ -73,12 +73,21 @@ func determineDurationToParse(runtimeDuration int, warmupDuration int) int {
 func runTraceMode(cfg *config.LoaderConfiguration, iatOnly bool) {
 	durationToParse := determineDurationToParse(cfg.ExperimentDuration, cfg.WarmupDuration)
 
-	traceParser := trace.NewAzureParser(cfg.TracePath, durationToParse)
-	functions := traceParser.Parse(cfg.Platform)
+	// traceParser := trace.NewAzureParser(cfg.TracePath, durationToParse)
+	// functions := traceParser.Parse(cfg.Platform)
 
-	log.Infof("Traces contain the following %d functions:\n", len(functions))
-	for _, function := range functions {
-		fmt.Printf("\t%s\n", function.Name)
+	// log.Infof("Traces contain the following %d functions:\n", len(functions))
+	// for _, function := range functions {
+	// 	fmt.Printf("\t%s\n", function.Name)
+	// }
+	var functions []*common.Function
+
+	for i := 0; i < 1; i++ {
+		function := &common.Function{
+			Name: fmt.Sprintf("%s-%d", common.FunctionNamePrefix),
+		}
+
+		functions = append(functions, function)
 	}
 
 	var iatType common.IatDistribution
