@@ -149,7 +149,7 @@ func StartGRPCServer(serverAddress string, serverPort int, zipkinUrl string) {
 }
 
 func main() {
-	var serverPort = 80
+	var serverPort = 8080
 
 	if _, ok := os.LookupEnv("FUNC_PORT_ENV"); ok {
 		serverPort, _ = strconv.Atoi(os.Getenv("FUNC_PORT_ENV"))
