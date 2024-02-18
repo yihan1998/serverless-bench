@@ -13,7 +13,7 @@ import (
 	"github.com/vhive-serverless/loader/pkg/generator"
 	"github.com/vhive-serverless/loader/pkg/trace"
 
-	"github.com/yihan1998/serverless-bench/pkg/distribution"
+	dist "github.com/yihan1998/serverless-bench/pkg/distribution"
 )
 
 type DriverConfiguration struct {
