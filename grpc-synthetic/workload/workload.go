@@ -19,9 +19,10 @@ import (
 )
 
 /*
-#include <stdio.h>
-void myCFunction() {
-    printf("Hello from C!\n");
+static double SQRTSD (double x) {
+    double r;
+    __asm__ ("sqrtsd %1, %0" : "=x" (r) : "x" (x));
+    return r;
 }
 */
 import "C"
@@ -39,10 +40,9 @@ var IterationsMultiplier int
 
 func takeSqrts() C.double {
 	var tmp C.double // Circumvent compiler optimizations
-	// for i := 0; i < EXEC_UNIT; i++ {
-	// 	tmp = C.SQRTSD(C.double(10))
-	// }
-	C.myCFunction()
+	for i := 0; i < EXEC_UNIT; i++ {
+		tmp = C.SQRTSD(C.double(10))
+	}
 	return tmp
 }
 
