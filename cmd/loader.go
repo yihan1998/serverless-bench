@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"slices"
+	"golang.org/x/exp/slices"
 
 	"github.com/vhive-serverless/loader/pkg/common"
 	"github.com/vhive-serverless/loader/pkg/config"
@@ -51,6 +51,8 @@ func main() {
 	if !slices.Contains(supportedPlatforms, cfg.Platform) {
 		log.Fatal("Unsupported platform! Supported platforms are [Knative, OpenWhisk, AWSLambda, Dirigent]")
 	}
+
+	log.Infof("Running experiments for %d minutes on %s\n", cfg.ExperimentDuration, cfg.Platform)
 
 	runTraceMode(&cfg, *iatGeneration)
 }
