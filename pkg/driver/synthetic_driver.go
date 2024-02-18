@@ -116,7 +116,7 @@ func (d *Driver) workerRoutine(function *common.Function, id int, rate float64, 
 
 		if int(lastLogElapsed.Seconds()) >= 1 {
 			numberOfInvocations += perSecInvocations
-			log.Debug("Worker ", id, " | Request generation rate: ", perSecInvocations/int(lastLogElapsed.Milliseconds()), "(KRPS)")
+			log.Debug("Worker ", id, " | Request rate: ", float64(perSecInvocations)/float64(lastLogElapsed.Milliseconds()), "(KRPS)")
 			perSecInvocations = 0
 			lastLogTime = time.Now()
 		}
