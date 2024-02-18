@@ -58,29 +58,40 @@ func (d *Driver) invokeFunction() {
 
 func (d *Driver) workerRoutine(rate float64, duration int) {
 	var arrivalGenerator = dist.NewExponentialGenerator(rate)
-	var lastInvokeTime = time.Now()
 	var nextInterval = arrivalGenerator.GetNext()
 	invokedFunctions := sync.WaitGroup{}
 
 	numberOfInvocations := 0
+	perSecInvocations := 0
 
-	log.Debug("Next interval: ", nextInterval)
+	log.Debug("Duration: ", duration)
 
 	startTime := time.Now()
+	lastInvokeTime := time.Now()
+	lastLogTime := time.Now()
 
 	for {
-		currentTime := time.Now()
+		totalElapsed := time.Since(startTime)
+		invokeElapsed := time.Since(lastInvokeTime)
+		lastLogElapsed := time.Since(lastLogTime)
 
-		if int(currentTime.Sub(startTime).Minutes()) > duration {
+		if int(totalElapsed.Minutes()) > duration {
 			break
 		}
 
-		if int64(currentTime.Sub(lastInvokeTime).Milliseconds()) > nextInterval {
+		if int(lastLogElapsed.Minutes()) > 1 {
+			numberOfInvocations += perSecInvocations
+			log.Debug("Rate: ", perSecInvocations/int(lastLogElapsed.Milliseconds()), "(KRPS)")
+			lastLogTime = time.Now()
+			break
+		}
+
+		if invokeElapsed.Milliseconds() > nextInterval {
 			invokedFunctions.Add(1)
 			go d.invokeFunction()
 
-			numberOfInvocations += 1
-			lastInvokeTime = currentTime
+			perSecInvocations += 1
+			lastInvokeTime = time.Now()
 			nextInterval = arrivalGenerator.GetNext()
 		}
 	}
