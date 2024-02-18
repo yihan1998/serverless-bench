@@ -29,7 +29,7 @@ RUN go mod tidy
 
 # Build the command inside the container.
 # To facilitate gRPC testing, this container includes a client command.
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -v -o ./grpc-synthetic synthetic.go
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -v -o ./grpc-synthetic ./
 
 # Use a Docker multi-stage build to create a lean production image.
 # https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
