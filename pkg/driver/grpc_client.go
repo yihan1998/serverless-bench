@@ -9,7 +9,7 @@ import (
 
 	"github.com/vhive-serverless/loader/pkg/common"
 	"github.com/vhive-serverless/loader/pkg/config"
-	"github.com/vhive-serverless/loader/pkg/workload/proto"
+	"github.com/yihan1998/serverless-bench/grpc-synthetic/proto"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -59,9 +59,9 @@ func InvokeGRPC(function *common.Function, runtimeSpec *common.RuntimeSpecificat
 	executionCxt, cancelExecution := context.WithTimeout(context.Background(), time.Duration(cfg.GRPCFunctionTimeoutSeconds)*time.Second)
 	defer cancelExecution()
 
-	response, err := grpcClient.Execute(executionCxt, &proto.FaasRequest{
+	response, err := grpcClient.Execute(executionCxt, &proto.SynRequest{
 		Message:           "nothing",
-		RuntimeInMilliSec: uint32(runtimeSpec.Runtime),
+		RuntimeInMicroSec: uint32(runtimeSpec.Runtime),
 		MemoryInMebiBytes: uint32(runtimeSpec.Memory),
 	})
 
