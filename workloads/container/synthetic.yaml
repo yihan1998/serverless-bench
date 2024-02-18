@@ -21,7 +21,7 @@ spec:
       nodeSelector:
         loader-nodetype: worker
       containers:
-        - image: docker.io/yihan2444/synthetic
+        - image: docker.io/yihan2444/grpc-synthetic
           # imagePullPolicy: Always  # No need if the tag is `latest`.
           ports:
             - name: h2c  # For gRPC support

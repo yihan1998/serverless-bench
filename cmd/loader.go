@@ -124,12 +124,8 @@ func runTraceMode(cfg *config.LoaderConfiguration, iatOnly bool) {
 
 	var yamlSpecificationPath string
 	switch cfg.YAMLSelector {
-	case "wimpy":
-		yamlSpecificationPath = "workloads/container/wimpy.yaml"
 	case "container":
-		yamlSpecificationPath = "workloads/container/trace_func_go.yaml"
-	case "firecracker":
-		yamlSpecificationPath = "workloads/firecracker/trace_func_go.yaml"
+		yamlSpecificationPath = "workloads/container/synthetic.yaml"
 	default:
 		if cfg.Platform != "Dirigent" {
 			log.Fatal("Invalid 'YAMLSelector' parameter.")
