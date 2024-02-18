@@ -79,7 +79,7 @@ func (d *Driver) workerRoutine(rate float64, duration int) {
 			break
 		}
 
-		if int(lastLogElapsed.Minutes()) > 1 {
+		if int(lastLogElapsed.Seconds()) > 1 {
 			numberOfInvocations += perSecInvocations
 			log.Debug("Rate: ", perSecInvocations/int(lastLogElapsed.Milliseconds()), "(KRPS)")
 			lastLogTime = time.Now()
