@@ -52,10 +52,15 @@ func (c *DriverConfiguration) WithWarmup() bool {
 	}
 }
 
-func (d *Driver) invokeFunction(rate float64, duration int) {
+func (d *Driver) invokeFunction() {
+
+}
+
+func (d *Driver) workerRoutine(rate float64, duration int) {
 	var arrivalGenerator = dist.NewExponentialGenerator(rate)
 	var lastInvokeTime = time.Now()
 	var nextInterval = arrivalGenerator.GetNext()
+	invokedFunctions := sync.WaitGroup{}
 
 	numberOfInvocations := 0
 
@@ -71,14 +76,18 @@ func (d *Driver) invokeFunction(rate float64, duration int) {
 		}
 
 		if int64(currentTime.Sub(lastInvokeTime).Milliseconds()) > nextInterval {
+			invokedFunctions.Add(1)
+			go d.invokeFunction()
+
 			numberOfInvocations += 1
 			lastInvokeTime = currentTime
 			nextInterval = arrivalGenerator.GetNext()
-			log.Debug("Time to invoke! Next interval: ", nextInterval)
 		}
 	}
 
+	invokedFunctions.Wait()
 	totalTime := time.Since(startTime)
+
 	log.Infof("Experiment took %s, request rate: %v (KRPS)", totalTime, numberOfInvocations/int(totalTime.Milliseconds()))
 }
 
@@ -91,7 +100,7 @@ func (d *Driver) individualFunctionDriver(function *common.Function, announceFun
 
 	for i := 0; i < d.Configuration.NumWorker; i++ {
 		workerGroup.Add(1)
-		go d.invokeFunction(per_worker_rate, totalTraceDuration)
+		go d.workerRoutine(per_worker_rate, totalTraceDuration)
 	}
 
 	workerGroup.Wait()
