@@ -18,6 +18,11 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+// static double SQRTSD (double x) {
+//     double r;
+//     __asm__ ("sqrtsd %1, %0" : "=x" (r) : "x" (x));
+//     return r;
+// }
 import "C"
 
 const (
