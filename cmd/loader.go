@@ -3,11 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"time"
 
 	"golang.org/x/exp/slices"
 
 	"github.com/vhive-serverless/loader/pkg/common"
 	"github.com/vhive-serverless/loader/pkg/config"
+	"github.com/vhive-serverless/loader/pkg/trace"
 
 	"github.com/yihan1998/serverless-bench/pkg/driver"
 
@@ -24,6 +27,25 @@ var (
 	verbosity     = flag.String("verbosity", "info", "Logging verbosity - choose from [info, debug, trace]")
 	iatGeneration = flag.Bool("iatGeneration", false, "Generate iats only or run invocations as well")
 )
+
+func init() {
+	flag.Parse()
+
+	log.SetFormatter(&log.TextFormatter{
+		TimestampFormat: time.StampMilli,
+		FullTimestamp:   true,
+	})
+	log.SetOutput(os.Stdout)
+
+	switch *verbosity {
+	case "debug":
+		log.SetLevel(log.DebugLevel)
+	case "trace":
+		log.SetLevel(log.TraceLevel)
+	default:
+		log.SetLevel(log.InfoLevel)
+	}
+}
 
 func main() {
 	cfg := config.ReadConfigurationFile(*configPath)
@@ -73,21 +95,12 @@ func determineDurationToParse(runtimeDuration int, warmupDuration int) int {
 func runTraceMode(cfg *config.LoaderConfiguration, iatOnly bool) {
 	durationToParse := determineDurationToParse(cfg.ExperimentDuration, cfg.WarmupDuration)
 
-	// traceParser := trace.NewAzureParser(cfg.TracePath, durationToParse)
-	// functions := traceParser.Parse(cfg.Platform)
+	traceParser := trace.NewAzureParser(cfg.TracePath, durationToParse)
+	functions := traceParser.Parse(cfg.Platform)
 
-	// log.Infof("Traces contain the following %d functions:\n", len(functions))
-	// for _, function := range functions {
-	// 	fmt.Printf("\t%s\n", function.Name)
-	// }
-	var functions []*common.Function
-
-	for i := 0; i < 1; i++ {
-		function := &common.Function{
-			Name: fmt.Sprintf("%s-%d", common.FunctionNamePrefix),
-		}
-
-		functions = append(functions, function)
+	log.Infof("Traces contain the following %d functions:\n", len(functions))
+	for _, function := range functions {
+		fmt.Printf("\t%s\n", function.Name)
 	}
 
 	var iatType common.IatDistribution
