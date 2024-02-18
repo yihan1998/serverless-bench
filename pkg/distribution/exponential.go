@@ -1,4 +1,4 @@
-package generator
+package distribution
 
 import "gonum.org/v1/gonum/stat/distuv"
 
