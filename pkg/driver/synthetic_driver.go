@@ -71,6 +71,8 @@ func (d *Driver) individualFunctionDriver(function *common.Function, announceFun
 
 	startTime := time.Now()
 
+	log.Debug("Spawning workers...\n")
+
 	for i := 0; i < 1; i++ {
 		workers.Add(1)
 		go func(i int) {
