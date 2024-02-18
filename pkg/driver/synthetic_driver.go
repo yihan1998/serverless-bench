@@ -64,8 +64,6 @@ func (d *Driver) workerRoutine(rate float64, duration int) {
 	numberOfInvocations := 0
 	perSecInvocations := 0
 
-	log.Debug("Duration: ", duration)
-
 	startTime := time.Now()
 	lastInvokeTime := time.Now()
 	lastLogTime := time.Now()
