@@ -47,72 +47,43 @@ func (c *DriverConfiguration) WithWarmup() bool {
 	}
 }
 
-func (d *Driver) invokeFunction() {
-	// defer metadata.AnnounceDoneWG.Done()
+func (d *Driver) invokeFunction(start Time, duration int) {
+	var lastInvokeTime = time.Now()
 
-	// var success bool
+	for {
+		currentTime := time.Now()
 
-	// var record *mc.ExecutionRecord
-	// switch d.Configuration.LoaderConfiguration.Platform {
-	// case "Knative":
-	// 	success, record = InvokeGRPC(
-	// 		metadata.Function,
-	// 		metadata.RuntimeSpecifications,
-	// 		d.Configuration.LoaderConfiguration,
-	// 	)
-	// default:
-	// 	log.Fatal("Unsupported platform.")
-	// }
+		if int(currentTime.Sub(startTime).Minutes()) > duration {
+			break
+		}
 
-	// record.Phase = int(metadata.Phase)
-	// record.InvocationID = composeInvocationID(d.Configuration.TraceGranularity, metadata.MinuteIndex, metadata.InvocationIndex)
-
-	// metadata.RecordOutputChannel <- record
-
-	// if success {
-	// 	atomic.AddInt64(metadata.SuccessCount, 1)
-	// } else {
-	// 	atomic.AddInt64(metadata.FailedCount, 1)
-	// 	atomic.AddInt64(&metadata.FailedCountByMinute[metadata.MinuteIndex], 1)
-	// }
-	log.Debug("Invoking function...")
+		if int(currentTime.Sub(lastInvokeTime).Seconds()) > 1 {
+			log.Debug("Time to invoke!")
+			lastInvokeTime = currentTime
+		}
+	}
 }
 
 func (d *Driver) individualFunctionDriver(function *common.Function, announceFunctionDone *sync.WaitGroup) {
-	waitForInvocations := sync.WaitGroup{}
+	workers := sync.WaitGroup{}
 
 	totalTraceDuration := d.Configuration.TraceDuration
 
 	startTime := time.Now()
 
-	for {
-		currentTime := time.Now()
-
-		if int(currentTime.Sub(startTime).Minutes()) > totalTraceDuration {
-			break
-		}
-
-		waitForInvocations.Add(1)
-
-		// go d.invokeFunction(&InvocationMetadata{
-		// 	Function:              function,
-		// 	RuntimeSpecifications: &runtimeSpecification[minuteIndex][invocationIndex],
-		// 	Phase:                 currentPhase,
-		// 	MinuteIndex:           minuteIndex,
-		// 	InvocationIndex:       invocationIndex,
-		// 	SuccessCount:          &successfulInvocations,
-		// 	FailedCount:           &failedInvocations,
-		// 	FailedCountByMinute:   failedInvocationByMinute,
-		// 	RecordOutputChannel:   recordOutputChannel,
-		// 	AnnounceDoneWG:        &waitForInvocations,
-		// 	AnnounceDoneExe:       addInvocationsToGroup,
-		// 	ReadOpenWhiskMetadata: readOpenWhiskMetadata,
-		// })
-
-		go d.invokeFunction()
-
-		waitForInvocations.Wait()
+	for i := 0; i < 1; i++ {
+		workers.Add(1)
+		go func(i int) {
+			defer workers.Done()
+			log.Debug("WORKER %d| Invoking function...\n", i)
+			invokeFunction(startTime)
+		}(i)
 	}
+
+	go func() {
+		workers.Wait()
+		close(ch)
+	}()
 
 	log.Debugf("All the invocations for function %s have been completed.\n", function.Name)
 	announceFunctionDone.Done()
