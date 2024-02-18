@@ -75,10 +75,6 @@ func (d *Driver) workerRoutine(rate float64, duration int) {
 		invokeElapsed := time.Since(lastInvokeTime)
 		lastLogElapsed := time.Since(lastLogTime)
 
-		log.Debug("Total elapsed: ", totalElapsed)
-		log.Debug("Invoke elapsed: ", invokeElapsed)
-		log.Debug("Log elapsed: ", lastLogElapsed)
-
 		if int(totalElapsed.Minutes()) > duration {
 			break
 		}
@@ -87,12 +83,12 @@ func (d *Driver) workerRoutine(rate float64, duration int) {
 			numberOfInvocations += perSecInvocations
 			log.Debug("Rate: ", perSecInvocations/int(lastLogElapsed.Milliseconds()), "(KRPS)")
 			lastLogTime = time.Now()
-			break
 		}
 
 		if invokeElapsed.Milliseconds() > nextInterval {
 			invokedFunctions.Add(1)
-			// go d.invokeFunction()
+
+			go d.invokeFunction()
 
 			perSecInvocations += 1
 			lastInvokeTime = time.Now()
