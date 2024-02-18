@@ -11,6 +11,7 @@ import (
 	"github.com/vhive-serverless/loader/pkg/config"
 	"github.com/vhive-serverless/loader/pkg/driver"
 	"github.com/vhive-serverless/loader/pkg/generator"
+	mc "github.com/vhive-serverless/loader/pkg/metric"
 	"github.com/vhive-serverless/loader/pkg/trace"
 
 	dist "github.com/yihan1998/serverless-bench/pkg/distribution"
@@ -52,11 +53,36 @@ func (c *DriverConfiguration) WithWarmup() bool {
 	}
 }
 
-func (d *Driver) invokeFunction() {
+type InvocationMetadata struct {
+	Function              *common.Function
+	RuntimeSpecifications *common.RuntimeSpecification
 
+	RecordOutputChannel chan interface{}
 }
 
-func (d *Driver) workerRoutine(rate float64, duration int) {
+func (d *Driver) invokeFunction(metadata *InvocationMetadata) {
+	var success bool
+	var record *mc.ExecutionRecord
+
+	switch d.Configuration.LoaderConfiguration.Platform {
+	case "Knative":
+		success, record = InvokeGRPC(
+			metadata.Function,
+			metadata.RuntimeSpecifications,
+			d.Configuration.LoaderConfiguration,
+		)
+	default:
+		log.Fatal("Unsupported platform.")
+	}
+
+	metadata.RecordOutputChannel <- record
+
+	if !success {
+		log.Error("gRPC of function %s failed!", metadata.Function.Name)
+	}
+}
+
+func (d *Driver) workerRoutine(function *common.Function, id int, rate float64, duration int) {
 	var arrivalGenerator = dist.NewExponentialGenerator(rate)
 	var nextInterval = arrivalGenerator.GetNext()
 	invokedFunctions := sync.WaitGroup{}
@@ -67,6 +93,17 @@ func (d *Driver) workerRoutine(rate float64, duration int) {
 	startTime := time.Now()
 	lastInvokeTime := time.Now()
 	lastLogTime := time.Now()
+
+	metricsCollector := make(chan interface{})
+
+	metadata := &InvocationMetadata{
+		Function: function,
+		RuntimeSpecifications: &common.RuntimeSpecification{
+			Runtime: 1000,
+			Memory:  128,
+		},
+		RecordOutputChannel: metricsCollector,
+	}
 
 	for {
 		totalElapsed := time.Since(startTime)
@@ -79,14 +116,15 @@ func (d *Driver) workerRoutine(rate float64, duration int) {
 
 		if int(lastLogElapsed.Seconds()) >= 1 {
 			numberOfInvocations += perSecInvocations
-			log.Debug("Rate: ", perSecInvocations/int(lastLogElapsed.Milliseconds()), "(KRPS)")
+			log.Debug("Worker ", id, " | Request generation rate: ", perSecInvocations/int(lastLogElapsed.Milliseconds()), "(KRPS)")
+			perSecInvocations = 0
 			lastLogTime = time.Now()
 		}
 
 		if invokeElapsed.Milliseconds() > nextInterval {
 			invokedFunctions.Add(1)
 
-			go d.invokeFunction()
+			go d.invokeFunction(metadata)
 
 			perSecInvocations += 1
 			lastInvokeTime = time.Now()
@@ -109,7 +147,7 @@ func (d *Driver) individualFunctionDriver(function *common.Function, announceFun
 
 	for i := 0; i < d.Configuration.NumWorker; i++ {
 		workerGroup.Add(1)
-		go d.workerRoutine(per_worker_rate, totalTraceDuration)
+		go d.workerRoutine(function, i, per_worker_rate, totalTraceDuration)
 	}
 
 	workerGroup.Wait()
