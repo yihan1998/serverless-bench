@@ -60,6 +60,8 @@ func deployKnative(function *common.Function, yamlPath string, isPartiallyPanic 
 		"\""+strconv.Itoa(autoscalingTarget)+"\"",
 	)
 
+	log.Debug("CMD: ", cmd)
+
 	stdoutStderr, err := cmd.CombinedOutput()
 	log.Debug("CMD response: ", string(stdoutStderr))
 
