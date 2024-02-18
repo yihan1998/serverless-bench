@@ -99,7 +99,7 @@ func (d *Driver) workerRoutine(function *common.Function, id int, rate float64, 
 	metadata := &InvocationMetadata{
 		Function: function,
 		RuntimeSpecifications: &common.RuntimeSpecification{
-			Runtime: 1000,
+			Runtime: 10,
 			Memory:  128,
 		},
 		RecordOutputChannel: metricsCollector,
