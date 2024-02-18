@@ -88,7 +88,7 @@ func (d *Driver) workerRoutine(rate float64, duration int) {
 
 		if invokeElapsed.Milliseconds() > nextInterval {
 			invokedFunctions.Add(1)
-			go d.invokeFunction()
+			// go d.invokeFunction()
 
 			perSecInvocations += 1
 			lastInvokeTime = time.Now()
