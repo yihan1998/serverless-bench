@@ -49,8 +49,8 @@ func (c *DriverConfiguration) WithWarmup() bool {
 	}
 }
 
-func (d *Driver) invokeFunction(startTime time.Time, duration int) {
-	var arrivalGenerator = dist.ExponentialGenerator(1.0)
+func (d *Driver) invokeFunction(rate float64, startTime time.Time, duration int) {
+	var arrivalGenerator = dist.NewExponentialGenerator(rate)
 	var lastInvokeTime = time.Now()
 	var nextInterval = arrivalGenerator.GetNext()
 
@@ -71,38 +71,37 @@ func (d *Driver) invokeFunction(startTime time.Time, duration int) {
 	}
 }
 
-func (d *Driver) individualFunctionDriver(function *common.Function, announceFunctionDone *sync.WaitGroup) {
-	workers := sync.WaitGroup{}
+func (d *Driver) individualFunctionDriver(function *common.Function, rate float64, workers int, announceFunctionDone *sync.WaitGroup) {
+	workerGroup := sync.WaitGroup{}
 
 	totalTraceDuration := d.Configuration.TraceDuration
 
 	startTime := time.Now()
+	per_worker_rate = rate / float64(worker)
 
-	log.Debug("Spawning workers...\n")
-
-	for i := 0; i < 1; i++ {
-		workers.Add(1)
-		go d.invokeFunction(startTime, totalTraceDuration)
+	for i := 0; i < workers; i++ {
+		workerGroup.Add(1)
+		go d.invokeFunction(per_worker_rate, startTime, totalTraceDuration)
 	}
 
-	workers.Wait()
+	workerGroup.Wait()
 
 	log.Debugf("All the invocations for function %s have been completed.\n", function.Name)
 	announceFunctionDone.Done()
 }
 
-func (d *Driver) internalRun(iatOnly bool) {
+func (d *Driver) internalRun(rate float64, workers int, iatOnly bool) {
 	var successfulInvocations int64
 	var failedInvocations int64
 	allIndividualDriversCompleted := sync.WaitGroup{}
 	allRecordsWritten := sync.WaitGroup{}
 	allRecordsWritten.Add(1)
 
-	log.Infof("Starting function invocation driver\n")
+	log.Infof("Starting function invocation driver(%v worker @%v KRPS)\n", workers, rate)
 	for _, function := range d.Configuration.Functions {
 		allIndividualDriversCompleted.Add(1)
 
-		go d.individualFunctionDriver(function, &allIndividualDriversCompleted)
+		go d.individualFunctionDriver(function, rate, workers, &allIndividualDriversCompleted)
 	}
 
 	allIndividualDriversCompleted.Wait()
@@ -131,5 +130,5 @@ func (d *Driver) RunExperiment(iatOnly bool) {
 	}
 
 	// Generate load
-	d.internalRun(iatOnly)
+	d.internalRun(d.Configuration.LoaderConfiguration.Rate, d.Configuration.LoaderConfiguration.Workers, iatOnly)
 }

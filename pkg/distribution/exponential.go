@@ -6,7 +6,7 @@ type ExponentialGenerator struct {
 	Generator *distuv.Exponential
 }
 
-func ExponentialGenerator(rate float64) *ExponentialGenerator {
+func NewExponentialGenerator(rate float64) *ExponentialGenerator {
 	return &ExponentialGenerator{
 		Generator: &distuv.Exponential{Rate: rate, Src: nil},
 	}
