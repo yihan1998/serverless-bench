@@ -26,6 +26,8 @@ var (
 	configPath    = flag.String("config", "config.json", "Path to loader configuration file")
 	verbosity     = flag.String("verbosity", "info", "Logging verbosity - choose from [info, debug, trace]")
 	iatGeneration = flag.Bool("iatGeneration", false, "Generate iats only or run invocations as well")
+	rate          = flag.Float64("rate", 1.0, "KReq per second")
+	numWorker     = flag.Int("worker", 1, "Number of workers to generate workload")
 )
 
 func init() {
@@ -150,6 +152,9 @@ func runTraceMode(cfg *config.LoaderConfiguration, iatOnly bool) {
 		ShiftIAT:            shiftIAT,
 		TraceGranularity:    traceGranularity,
 		TraceDuration:       durationToParse,
+
+		Rate:      rate,
+		NumWorker: numWorker,
 
 		YAMLPath: yamlSpecificationPath,
 		TestMode: false,
