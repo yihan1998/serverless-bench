@@ -78,13 +78,10 @@ func (d *Driver) invokeFunction() {
 	log.Debug("Invoking function...")
 }
 
-func (d *Driver) individualFunctionDriver(function *common.Function, announceFunctionDone *sync.WaitGroup,
-	addInvocationsToGroup *sync.WaitGroup, readOpenWhiskMetadata *sync.Mutex, totalSuccessful *int64,
-	totalFailed *int64, totalIssued *int64, recordOutputChannel chan interface{}) {
+func (d *Driver) individualFunctionDriver(function *common.Function, announceFunctionDone *sync.WaitGroup) {
 	waitForInvocations := sync.WaitGroup{}
 
 	totalTraceDuration := d.Configuration.TraceDuration
-	log.Debugf("Starting to invoke individual function driver for %s\n", function.Name)
 
 	startTime := time.Now()
 
@@ -124,57 +121,18 @@ func (d *Driver) individualFunctionDriver(function *common.Function, announceFun
 func (d *Driver) internalRun(iatOnly bool) {
 	var successfulInvocations int64
 	var failedInvocations int64
-	var invocationsIssued int64
-
-	readOpenWhiskMetadata := sync.Mutex{}
-	allFunctionsInvoked := sync.WaitGroup{}
 	allIndividualDriversCompleted := sync.WaitGroup{}
 	allRecordsWritten := sync.WaitGroup{}
 	allRecordsWritten.Add(1)
-
-	backgroundProcessesInitializationBarrier, globalMetricsCollector, totalIssuedChannel, scraperFinishCh := d.startBackgroundProcesses(&allRecordsWritten)
-
-	if !iatOnly {
-		log.Info("Generating IAT and runtime specifications for all the functions")
-		for i, function := range d.Configuration.Functions {
-			spec := d.SpecificationGenerator.GenerateInvocationData(
-				function,
-				d.Configuration.IATDistribution,
-				d.Configuration.ShiftIAT,
-				d.Configuration.TraceGranularity,
-			)
-
-			d.Configuration.Functions[i].Specification = spec
-		}
-	}
-
-	backgroundProcessesInitializationBarrier.Wait()
 
 	log.Infof("Starting function invocation driver\n")
 	for _, function := range d.Configuration.Functions {
 		allIndividualDriversCompleted.Add(1)
 
-		go d.individualFunctionDriver(
-			function,
-			&allIndividualDriversCompleted,
-			&allFunctionsInvoked,
-			&readOpenWhiskMetadata,
-			&successfulInvocations,
-			&failedInvocations,
-			&invocationsIssued,
-			globalMetricsCollector,
-		)
+		go d.individualFunctionDriver(function, &allIndividualDriversCompleted)
 	}
 
 	allIndividualDriversCompleted.Wait()
-	if atomic.LoadInt64(&successfulInvocations)+atomic.LoadInt64(&failedInvocations) != 0 {
-		log.Debugf("Waiting for all the invocations record to be written.\n")
-
-		totalIssuedChannel <- atomic.LoadInt64(&invocationsIssued)
-		scraperFinishCh <- 0 // Ask the scraper to finish metrics collection
-
-		allRecordsWritten.Wait()
-	}
 
 	log.Infof("Trace has finished executing function invocation driver\n")
 	log.Infof("Number of successful invocations: \t%d\n", atomic.LoadInt64(&successfulInvocations))
