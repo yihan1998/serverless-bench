@@ -75,16 +75,10 @@ func (d *Driver) individualFunctionDriver(function *common.Function, announceFun
 
 	for i := 0; i < 1; i++ {
 		workers.Add(1)
-		go func(i int) {
-			defer workers.Done()
-			log.Debug("WORKER %d| Invoking function...\n", i)
-			d.invokeFunction(startTime, totalTraceDuration)
-		}(i)
+		go d.invokeFunction(startTime, totalTraceDuration)
 	}
 
-	go func() {
-		workers.Wait()
-	}()
+	workers.Wait()
 
 	log.Debugf("All the invocations for function %s have been completed.\n", function.Name)
 	announceFunctionDone.Done()
