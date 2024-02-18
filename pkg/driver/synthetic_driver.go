@@ -2,6 +2,8 @@ package driver
 
 import (
 	"sync"
+	"sync/atomic"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -45,14 +47,137 @@ func (c *DriverConfiguration) WithWarmup() bool {
 	}
 }
 
+func (d *Driver) invokeFunction() {
+	// defer metadata.AnnounceDoneWG.Done()
+
+	// var success bool
+
+	// var record *mc.ExecutionRecord
+	// switch d.Configuration.LoaderConfiguration.Platform {
+	// case "Knative":
+	// 	success, record = InvokeGRPC(
+	// 		metadata.Function,
+	// 		metadata.RuntimeSpecifications,
+	// 		d.Configuration.LoaderConfiguration,
+	// 	)
+	// default:
+	// 	log.Fatal("Unsupported platform.")
+	// }
+
+	// record.Phase = int(metadata.Phase)
+	// record.InvocationID = composeInvocationID(d.Configuration.TraceGranularity, metadata.MinuteIndex, metadata.InvocationIndex)
+
+	// metadata.RecordOutputChannel <- record
+
+	// if success {
+	// 	atomic.AddInt64(metadata.SuccessCount, 1)
+	// } else {
+	// 	atomic.AddInt64(metadata.FailedCount, 1)
+	// 	atomic.AddInt64(&metadata.FailedCountByMinute[metadata.MinuteIndex], 1)
+	// }
+	log.Debug("Invoking function...")
+}
+
 func (d *Driver) individualFunctionDriver(function *common.Function, announceFunctionDone *sync.WaitGroup,
 	addInvocationsToGroup *sync.WaitGroup, readOpenWhiskMetadata *sync.Mutex, totalSuccessful *int64,
 	totalFailed *int64, totalIssued *int64, recordOutputChannel chan interface{}) {
+	waitForInvocations := sync.WaitGroup{}
 
+	totalTraceDuration := d.Configuration.TraceDuration
+
+	startTime := time.Now()
+
+	for {
+		currentTime := time.Now()
+
+		if int(currentTime.Sub(startTime).Minutes()) > totalTraceDuration {
+			break
+		}
+
+		waitForInvocations.Add(1)
+
+		// go d.invokeFunction(&InvocationMetadata{
+		// 	Function:              function,
+		// 	RuntimeSpecifications: &runtimeSpecification[minuteIndex][invocationIndex],
+		// 	Phase:                 currentPhase,
+		// 	MinuteIndex:           minuteIndex,
+		// 	InvocationIndex:       invocationIndex,
+		// 	SuccessCount:          &successfulInvocations,
+		// 	FailedCount:           &failedInvocations,
+		// 	FailedCountByMinute:   failedInvocationByMinute,
+		// 	RecordOutputChannel:   recordOutputChannel,
+		// 	AnnounceDoneWG:        &waitForInvocations,
+		// 	AnnounceDoneExe:       addInvocationsToGroup,
+		// 	ReadOpenWhiskMetadata: readOpenWhiskMetadata,
+		// })
+
+		go d.invokeFunction()
+
+		waitForInvocations.Wait()
+	}
+
+	log.Debugf("All the invocations for function %s have been completed.\n", function.Name)
+	announceFunctionDone.Done()
 }
 
 func (d *Driver) internalRun(iatOnly bool) {
+	var successfulInvocations int64
+	var failedInvocations int64
+	var invocationsIssued int64
+
+	readOpenWhiskMetadata := sync.Mutex{}
+	allFunctionsInvoked := sync.WaitGroup{}
+	allIndividualDriversCompleted := sync.WaitGroup{}
+	allRecordsWritten := sync.WaitGroup{}
+	allRecordsWritten.Add(1)
+
+	backgroundProcessesInitializationBarrier, globalMetricsCollector, totalIssuedChannel, scraperFinishCh := d.startBackgroundProcesses(&allRecordsWritten)
+
+	if !iatOnly {
+		log.Info("Generating IAT and runtime specifications for all the functions")
+		for i, function := range d.Configuration.Functions {
+			spec := d.SpecificationGenerator.GenerateInvocationData(
+				function,
+				d.Configuration.IATDistribution,
+				d.Configuration.ShiftIAT,
+				d.Configuration.TraceGranularity,
+			)
+
+			d.Configuration.Functions[i].Specification = spec
+		}
+	}
+
+	backgroundProcessesInitializationBarrier.Wait()
+
 	log.Infof("Starting function invocation driver\n")
+	for _, function := range d.Configuration.Functions {
+		allIndividualDriversCompleted.Add(1)
+
+		go d.individualFunctionDriver(
+			function,
+			&allIndividualDriversCompleted,
+			&allFunctionsInvoked,
+			&readOpenWhiskMetadata,
+			&successfulInvocations,
+			&failedInvocations,
+			&invocationsIssued,
+			globalMetricsCollector,
+		)
+	}
+
+	allIndividualDriversCompleted.Wait()
+	if atomic.LoadInt64(&successfulInvocations)+atomic.LoadInt64(&failedInvocations) != 0 {
+		log.Debugf("Waiting for all the invocations record to be written.\n")
+
+		totalIssuedChannel <- atomic.LoadInt64(&invocationsIssued)
+		scraperFinishCh <- 0 // Ask the scraper to finish metrics collection
+
+		allRecordsWritten.Wait()
+	}
+
+	log.Infof("Trace has finished executing function invocation driver\n")
+	log.Infof("Number of successful invocations: \t%d\n", atomic.LoadInt64(&successfulInvocations))
+	log.Infof("Number of failed invocations: \t%d\n", atomic.LoadInt64(&failedInvocations))
 }
 
 func (d *Driver) RunExperiment(iatOnly bool) {
