@@ -50,9 +50,9 @@ func (c *DriverConfiguration) WithWarmup() bool {
 }
 
 func (d *Driver) invokeFunction(startTime time.Time, duration int) {
-	var arrivalGenerator = dist.exponentialGenerator(1.0)
+	var arrivalGenerator = dist.ExponentialGenerator(1.0)
 	var lastInvokeTime = time.Now()
-	var nextInterval = arrivalGenerator.getNext()
+	var nextInterval = arrivalGenerator.GetNext()
 
 	log.Debug("Next interval: ", nextInterval)
 
@@ -65,7 +65,7 @@ func (d *Driver) invokeFunction(startTime time.Time, duration int) {
 
 		if int(currentTime.Sub(lastInvokeTime).Seconds()) > nextInterval {
 			lastInvokeTime = currentTime
-			nextInterval = arrivalGenerator.getNext()
+			nextInterval = arrivalGenerator.GetNext()
 			log.Debug("Time to invoke! Next interval: ", nextInterval)
 		}
 	}
