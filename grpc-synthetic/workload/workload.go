@@ -12,8 +12,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	util "github.com/vhive-serverless/loader/pkg/common"
-	"github.com/yihan1998/serverless-bench/grpc-synthetic/proto"
 	tracing "github.com/vhive-serverless/vSwarm/utils/tracing/go"
+	"github.com/yihan1998/serverless-bench/grpc-synthetic/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

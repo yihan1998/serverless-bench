@@ -53,14 +53,11 @@ func InvokeGRPC(function *common.Function, runtimeSpec *common.RuntimeSpecificat
 	}
 
 	record.GRPCConnectionEstablishTime = time.Since(grpcStart).Microseconds()
-	log.Trace("(Established)\t ", function.Name, ": establish connection@", time.Now())
 
 	grpcClient := proto.NewExecutorClient(conn)
 
 	executionCxt, cancelExecution := context.WithTimeout(context.Background(), time.Duration(cfg.GRPCFunctionTimeoutSeconds)*time.Second)
 	defer cancelExecution()
-
-	log.Trace("(Execute)\t send request@", time.Now())
 
 	response, err := grpcClient.Execute(executionCxt, &proto.SynRequest{
 		Message:           "nothing",
