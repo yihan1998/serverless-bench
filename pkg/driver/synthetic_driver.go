@@ -13,7 +13,7 @@ import (
 	"github.com/vhive-serverless/loader/pkg/generator"
 	"github.com/vhive-serverless/loader/pkg/trace"
 
-	"github.com/yihan1998/serverless-bench/pkg/generator"
+	"github.com/yihan1998/serverless-bench/pkg/distribution"
 )
 
 type DriverConfiguration struct {
@@ -50,9 +50,9 @@ func (c *DriverConfiguration) WithWarmup() bool {
 }
 
 func (d *Driver) invokeFunction(startTime time.Time, duration int) {
-	var arrivalGenerator = generator.exponentialGenerator(1.0)
+	var arrivalGenerator = dist.exponentialGenerator(1.0)
 	var lastInvokeTime = time.Now()
-	var nextInterval = generator.getNext(arrivalGenerator)
+	var nextInterval = dist.getNext(arrivalGenerator)
 
 	log.Debug("Next interval: ", nextInterval)
 
@@ -65,7 +65,7 @@ func (d *Driver) invokeFunction(startTime time.Time, duration int) {
 
 		if int(currentTime.Sub(lastInvokeTime).Seconds()) > nextInterval {
 			lastInvokeTime = currentTime
-			nextInterval = generator.getNext(arrivalGenerator)
+			nextInterval = dist.getNext(arrivalGenerator)
 			log.Debug("Time to invoke! Next interval: ", nextInterval)
 		}
 	}
