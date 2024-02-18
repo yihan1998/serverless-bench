@@ -29,13 +29,18 @@ RUN go mod tidy
 
 # Build the command inside the container.
 # To facilitate gRPC testing, this container includes a client command.
-RUN CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -v -o ./synthetic ./workload
+RUN CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -v -o server ./server
 
 ARG FUNC_PORT
 ENV FUNC_PORT_ENV=${FUNC_PORT}
 
+# Use a Docker multi-stage build to create a lean production image.
+# https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
+# https://github.com/GoogleContainerTools/distroless#readme
+FROM gcr.io/distroless/static
+
 # Copy the binaries to the production image from the builder stage.
-COPY --from=builder /go/src/github.com/yihan1998/serverless-bench/grpc-synthetic/synthetic /server
+COPY --from=builder /go/src/github.com/yihan1998/serverless-bench/grpc-synthetic/server /server
 
 # Run the service on container startup.
 CMD ["/server"]

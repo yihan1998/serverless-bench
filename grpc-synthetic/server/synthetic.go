@@ -1,7 +1,8 @@
-package workload
+package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -26,6 +27,10 @@ static double SQRTSD (double x) {
 }
 */
 import "C"
+
+var (
+	zipkin = flag.String("zipkin", "http://zipkin.zipkin:9411/api/v2/spans", "zipkin url")
+)
 
 const (
 	// ContainerImageSizeMB was chosen as a median of the container physical memory usage.
@@ -141,4 +146,15 @@ func StartGRPCServer(serverAddress string, serverPort int, zipkinUrl string) {
 	proto.RegisterExecutorServer(grpcServer, &funcServer{})
 	err = grpcServer.Serve(lis)
 	util.Check(err)
+}
+
+func main() {
+	var serverPort = 80
+
+	if _, ok := os.LookupEnv("FUNC_PORT_ENV"); ok {
+		serverPort, _ = strconv.Atoi(os.Getenv("FUNC_PORT_ENV"))
+	}
+
+	log.Infof("Port: %d\n", serverPort)
+	StartGRPCServer("", serverPort, *zipkin)
 }
