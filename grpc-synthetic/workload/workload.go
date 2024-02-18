@@ -18,6 +18,8 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+import "C"
+
 const (
 	// ContainerImageSizeMB was chosen as a median of the container physical memory usage.
 	// Allocate this much less memory inside the actual function.
@@ -70,7 +72,7 @@ func (s *funcServer) Execute(_ context.Context, req *proto.SynRequest) (*proto.S
 	timeLeftMicroseconds := req.RuntimeInMicroSec
 	msg = TraceFunctionExecution(start, timeLeftMicroseconds)
 
-	return &proto.FaasReply{
+	return &proto.SynReply{
 		Message:            msg,
 		DurationInMicroSec: uint32(time.Since(start).Microseconds()),
 		MemoryUsageInKb:    req.MemoryInMebiBytes * 1024,
